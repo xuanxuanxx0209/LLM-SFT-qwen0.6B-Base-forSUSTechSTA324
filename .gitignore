@@ -109,4 +109,6 @@ credentials.json
 # Keep .gitignore itself tracked
 !.gitignore
 
-# 如果需要追踪被忽略的已存在文件，使用 git add -f <path> 或手动移除对应规则
+# 如果需要追踪被忽略的已存在文件，使用 git add -f <path> 或手动移除对应规则.claude/
+.copilot/
+.config/vllm/usage_stats.json

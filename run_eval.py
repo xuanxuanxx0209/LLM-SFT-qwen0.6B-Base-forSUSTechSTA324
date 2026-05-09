@@ -9,7 +9,7 @@ from score_valid_outputs import extract_prediction, answers_match
 from vllm import LLM, SamplingParams
 from transformers import AutoTokenizer
 
-MODEL_PATH = "/home/ubuntu/Qwen3-0.6B-Base-Math-SFT"
+MODEL_PATH = "/home/ubuntu/Qwen3-0.6B-Base-Math-SFT-v2"
 DATA_PATH = "/home/ubuntu/validation-set/valid_1000.jsonl"
 
 SYSTEM_PROMPT = (
@@ -52,7 +52,7 @@ for q in questions:
         messages,
         tokenize=False,
         add_generation_prompt=True,
-        enable_thinking=True,
+        enable_thinking=False,
     )
     prompts.append(prompt)
 
