@@ -18,7 +18,7 @@ dist/
 *.egg-info/
 *.egg
 pip-wheel-metadata/
-wheelhouse/
+wheelhouse
 
 # Virtual environments and conda
 .venv/

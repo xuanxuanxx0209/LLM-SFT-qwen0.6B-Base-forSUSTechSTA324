@@ -379,3 +379,22 @@ tensorboard --version
 smi nvidia
 nvidia smi
 conda activate llm
+git remote add origin https://github.com/xuanxuanxx0209/LLM-fine-tune-qwen0.6B-Base.git
+git branch -M main
+git push -u origin main
+git config --global user.email "12410601@mail.sustech.edu.cn"
+git config --global user.name "jgy"
+git branch -M main
+git push -u origin main
+git remote add origin https://github.com/xuanxuanxx0209/LLM-fine-tune-qwen0.6B-Base.git
+git branch -M main
+git push -u origin main
+git branch -M main
+git push -u origin main
+add.
+add .
+git add .
+git commit -m "Initial commit"
+git branch -M main
+git add .
+git commit -m "Initial commit"
