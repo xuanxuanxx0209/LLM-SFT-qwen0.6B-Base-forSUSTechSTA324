@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+"""Launch OpenRLHF SFT training for Qwen3-0.6B-Base on combined_7460_merged dataset."""
+
+import os
+import subprocess
+import sys
+from pathlib import Path
+
+
+def main():
+    model_path = "/home/ubuntu/models/Qwen3-0.6B-Base"
+    dataset_path = "/home/ubuntu/jgy-dataset/combined_7460_merged.jsonl"
+    output_path = "/home/ubuntu/Qwen3-0.6B-Base-Math-SFT-v2"
+    template_path = "/home/ubuntu/models/Qwen3-0.6B-Base/chat_template.jinja"
+    tb_log_dir = Path(output_path) / "tensorboard"
+
+    Path(output_path).mkdir(parents=True, exist_ok=True)
+    tb_log_dir.mkdir(parents=True, exist_ok=True)
+
+    chat_template = Path(template_path).read_text(encoding="utf-8")
+
+    cmd = [
+        sys.executable,
+        "-m",
+        "openrlhf.cli.train_sft",
+        "--pretrain",
+        model_path,
+        "--dataset",
+        dataset_path,
+        "--apply_chat_template",
+        "--input_key",
+        "messages",
+        "--tokenizer_chat_template",
+        chat_template,
+        "--max_len",
+        "4096",
+        "--micro_train_batch_size",
+        "2",
+        "--train_batch_size",
+        "16",
+        "--learning_rate",
+        "1e-7",
+        "--max_epochs",
+        "3",
+        "--save_path",
+        output_path,
+        "--save_steps",
+        "-1",
+        "--disable_ds_ckpt",
+        "--logging_steps",
+        "1",
+        "--gradient_checkpointing",
+        "--zero_stage",
+        "2",
+        "--param_dtype",
+        "bf16",
+        "--attn_implementation",
+        "flash_attention_2",
+        "--use_tensorboard",
+        str(tb_log_dir),
+    ]
+
+    env = os.environ.copy()
+    env["RANK"] = "0"
+    env["LOCAL_RANK"] = "0"
+    env["WORLD_SIZE"] = "1"
+    env["MASTER_ADDR"] = "127.0.0.1"
+    env["MASTER_PORT"] = "29501"
+    env["PYTORCH_CUDA_ALLOC_CONF"] = "expandable_segments:True"
+
+    log_path = Path(output_path) / "training.log"
+    with log_path.open("w", encoding="utf-8") as log_file:
+        proc = subprocess.Popen(cmd, env=env, stdout=log_file, stderr=subprocess.STDOUT, text=True)
+        print(f"Training started with PID {proc.pid}")
+        print(f"Logs: {log_path}")
+        return_code = proc.wait()
+
+    if return_code != 0:
+        print(f"Training failed with return code {return_code}", file=sys.stderr)
+        sys.exit(return_code)
+
+    print("Training completed successfully.")
+    print(f"Final model saved to: {output_path}")
+
+
+if __name__ == "__main__":
+    main()

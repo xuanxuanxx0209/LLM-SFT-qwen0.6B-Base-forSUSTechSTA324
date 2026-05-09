@@ -1,0 +1,16 @@
+{
+  "platform": "opencode",
+  "createdAt": "2026-03-17T04:11:53.253Z",
+  "entries": [
+    {
+      "originalPath": "/home/ubuntu/.ccman/opencode.json",
+      "backupPath": null,
+      "existed": false
+    },
+    {
+      "originalPath": "/home/ubuntu/.config/opencode/opencode.json",
+      "backupPath": null,
+      "existed": false
+    }
+  ]
+}

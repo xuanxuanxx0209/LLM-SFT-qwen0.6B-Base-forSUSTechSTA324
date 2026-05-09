@@ -1,0 +1,115 @@
+#!/usr/bin/env bash
+# Full-parameter SFT fine-tuning of Qwen3-0.6B-Base with OpenRLHF.
+# TensorBoard logs are written under tensorboard/, the final model under
+# training_final_model/, and per-epoch HF checkpoints under checkpoints_sft/.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+RUN_ROOT="${SCRIPT_DIR}"
+
+PYTHON_BIN="${PYTHON_BIN:-/home/ubuntu/miniconda3/envs/llm/bin/python}"
+DEEPSPEED_BIN="${DEEPSPEED_BIN:-/home/ubuntu/miniconda3/envs/llm/bin/deepspeed}"
+
+MODEL_PATH="${MODEL_PATH:-/home/ubuntu/models/Qwen3-0.6B-Base}"
+RAW_DATASET="${RAW_DATASET:-/home/ubuntu/jgy-dataset/data large none.jsonl}"
+TRAIN_DATASET="${TRAIN_DATASET:-${RUN_ROOT}/sft_train.jsonl}"
+CHAT_TEMPLATE_FILE="${CHAT_TEMPLATE_FILE:-${RUN_ROOT}/chat_template.jinja}"
+
+TB_DIR="${RUN_ROOT}/tensorboard"
+CKPT_DIR="${RUN_ROOT}/checkpoints_sft"
+SAVE_DIR="${RUN_ROOT}/training_final_model"
+TRAIN_LOG="${RUN_ROOT}/train.log"
+CACHE_ROOT="${RUN_ROOT}/cache"
+
+MAX_LEN="${MAX_LEN:-2048}"
+MAX_EPOCHS="${MAX_EPOCHS:-3}"
+MICRO_TRAIN_BATCH_SIZE="${MICRO_TRAIN_BATCH_SIZE:-4}"
+GRADIENT_ACCUMULATION="${GRADIENT_ACCUMULATION:-4}"
+TRAIN_BATCH_SIZE=$(( MICRO_TRAIN_BATCH_SIZE * GRADIENT_ACCUMULATION ))
+LEARNING_RATE="${LEARNING_RATE:-1e-6}"
+ZERO_STAGE="${ZERO_STAGE:-2}"
+ATTN_IMPLEMENTATION="${ATTN_IMPLEMENTATION:-eager}"
+LR_WARMUP_RATIO="${LR_WARMUP_RATIO:-0.03}"
+MASTER_PORT="${MASTER_PORT:-29663}"
+TRAIN_GPU="${TRAIN_GPU:-0}"
+TB_RUN_NAME="${TB_RUN_NAME:-qwen3_06b_base_sft}"
+
+mkdir -p "${TB_DIR}" "${CKPT_DIR}" "${CACHE_ROOT}/tmp" "${CACHE_ROOT}/hf" \
+         "${CACHE_ROOT}/datasets" "${CACHE_ROOT}/transformers" "${CACHE_ROOT}/torch" \
+         "${CACHE_ROOT}/triton" "${CACHE_ROOT}/xdg"
+
+if [[ ! -f "${TRAIN_DATASET}" ]]; then
+  echo "[$(date -u +%FT%TZ)] Preparing training dataset: ${TRAIN_DATASET}"
+  "${PYTHON_BIN}" "${SCRIPT_DIR}/prepare_dataset.py" \
+      --src "${RAW_DATASET}" \
+      --dst "${TRAIN_DATASET}"
+fi
+
+NUM_RECORDS=$(wc -l < "${TRAIN_DATASET}" | tr -d ' ')
+STEPS_PER_EPOCH=$(( NUM_RECORDS / TRAIN_BATCH_SIZE ))
+if [[ "${STEPS_PER_EPOCH}" -lt 1 ]]; then STEPS_PER_EPOCH=1; fi
+SAVE_STEPS="${SAVE_STEPS:-${STEPS_PER_EPOCH}}"
+MAX_CKPT_NUM="${MAX_CKPT_NUM:-${MAX_EPOCHS}}"
+
+CHAT_TEMPLATE_TEXT="$(cat "${CHAT_TEMPLATE_FILE}")"
+
+echo "[$(date -u +%FT%TZ)] Run root:              ${RUN_ROOT}"
+echo "[$(date -u +%FT%TZ)] Model path:            ${MODEL_PATH}"
+echo "[$(date -u +%FT%TZ)] Train dataset:         ${TRAIN_DATASET} (${NUM_RECORDS} records)"
+echo "[$(date -u +%FT%TZ)] TensorBoard dir:       ${TB_DIR}"
+echo "[$(date -u +%FT%TZ)] Train batch size:      ${TRAIN_BATCH_SIZE} (micro=${MICRO_TRAIN_BATCH_SIZE} x ga=${GRADIENT_ACCUMULATION})"
+echo "[$(date -u +%FT%TZ)] Steps per epoch:       ${STEPS_PER_EPOCH}"
+echo "[$(date -u +%FT%TZ)] Save every:            ${SAVE_STEPS} steps (max_ckpt_num=${MAX_CKPT_NUM})"
+echo "[$(date -u +%FT%TZ)] Learning rate:         ${LEARNING_RATE}"
+echo "[$(date -u +%FT%TZ)] Max length:            ${MAX_LEN}"
+echo "[$(date -u +%FT%TZ)] Max epochs:            ${MAX_EPOCHS}"
+echo "[$(date -u +%FT%TZ)] Zero stage:            ${ZERO_STAGE}"
+echo "[$(date -u +%FT%TZ)] Attn implementation:   ${ATTN_IMPLEMENTATION}"
+
+export CUDA_VISIBLE_DEVICES="${TRAIN_GPU}"
+export PATH="$(dirname "${PYTHON_BIN}"):${PATH}"
+export TMPDIR="${CACHE_ROOT}/tmp"
+export HF_HOME="${CACHE_ROOT}/hf"
+export HF_DATASETS_CACHE="${CACHE_ROOT}/datasets"
+export TRANSFORMERS_CACHE="${CACHE_ROOT}/transformers"
+export TORCH_HOME="${CACHE_ROOT}/torch"
+export TRITON_CACHE_DIR="${CACHE_ROOT}/triton"
+export XDG_CACHE_HOME="${CACHE_ROOT}/xdg"
+export PYTORCH_ALLOC_CONF="expandable_segments:True"
+
+CMD=(
+  "${DEEPSPEED_BIN}"
+  --master_port "${MASTER_PORT}"
+  --module openrlhf.cli.train_sft
+  --pretrain "${MODEL_PATH}"
+  --dataset "${TRAIN_DATASET}"
+  --input_key messages
+  --apply_chat_template
+  --multiturn
+  --max_len "${MAX_LEN}"
+  --max_epochs "${MAX_EPOCHS}"
+  --micro_train_batch_size "${MICRO_TRAIN_BATCH_SIZE}"
+  --train_batch_size "${TRAIN_BATCH_SIZE}"
+  --save_path "${SAVE_DIR}"
+  --ckpt_path "${CKPT_DIR}"
+  --save_steps "${SAVE_STEPS}"
+  --save_hf_ckpt
+  --disable_ds_ckpt
+  --max_ckpt_num "${MAX_CKPT_NUM}"
+  --logging_steps 1
+  --zero_stage "${ZERO_STAGE}"
+  --learning_rate "${LEARNING_RATE}"
+  --lr_warmup_ratio "${LR_WARMUP_RATIO}"
+  --gradient_checkpointing
+  --attn_implementation "${ATTN_IMPLEMENTATION}"
+  --use_tensorboard "${TB_DIR}"
+  --wandb_run_name "${TB_RUN_NAME}"
+  --tokenizer_chat_template "${CHAT_TEMPLATE_TEXT}"
+)
+
+if [[ "${ADAM_OFFLOAD:-0}" == "1" ]]; then
+  CMD+=("--adam_offload")
+fi
+
+echo "[$(date -u +%FT%TZ)] Launching training (logs: ${TRAIN_LOG})"
+"${CMD[@]}" 2>&1 | tee "${TRAIN_LOG}"

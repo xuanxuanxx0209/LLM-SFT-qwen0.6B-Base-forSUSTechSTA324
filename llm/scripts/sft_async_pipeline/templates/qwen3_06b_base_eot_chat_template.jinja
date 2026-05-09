@@ -1,0 +1,44 @@
+{%- set ns = namespace(system_prompt='') %}
+{%- for message in messages %}
+    {%- if message.role == 'system' and ns.system_prompt == '' and message.content is string and message.content.strip() %}
+        {%- set ns.system_prompt = message.content.strip() %}
+    {%- endif %}
+{%- endfor %}
+
+{%- if ns.system_prompt %}
+{{- '<|endoftext|>system\n' }}
+{{- 'Instruction:\n' + ns.system_prompt + '\n' }}
+{{- '<|endoftext|>\n' }}
+{%- endif %}
+
+{%- for message in messages %}
+    {%- if message.role == 'user' %}
+{{- '<|endoftext|>user\n' }}
+{{- 'Question:\n' + message.content.strip() + '\n' }}
+{{- '<|endoftext|>\n' }}
+    {%- elif message.role == 'assistant' %}
+        {%- set answer = message.content.strip() %}
+        {%- set reasoning = '' %}
+        {%- if message.reasoning_content is defined and message.reasoning_content is not none and message.reasoning_content.strip() %}
+            {%- set reasoning = message.reasoning_content.strip() %}
+        {%- elif '<think>' in message.content and '</think>' in message.content %}
+            {%- set reasoning = message.content.split('</think>')[0].split('<think>')[-1].strip() %}
+            {%- set answer = message.content.split('</think>')[-1].strip() %}
+        {%- endif %}
+{{- '<|endoftext|>assistant\n' }}
+        {%- if reasoning %}
+{{- 'Reasoning:\n' + reasoning + '\n\n' }}
+        {%- endif %}
+{{- 'Final Answer:\n' + answer + '\n' }}
+{{- '<|endoftext|>\n' }}
+    {%- endif %}
+{%- endfor %}
+
+{%- if add_generation_prompt %}
+{{- '<|endoftext|>assistant\n' }}
+    {%- if enable_thinking is defined and enable_thinking is false %}
+{{- 'Final Answer:\n' }}
+    {%- else %}
+{{- 'Reasoning:\n' }}
+    {%- endif %}
+{%- endif %}

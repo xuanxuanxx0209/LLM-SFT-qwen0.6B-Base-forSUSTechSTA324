@@ -1,0 +1,7 @@
+{
+    "env": {
+        "ANTHROPIC_AUTH_TOKEN": "sk-kimi-4Kyjvf4iTvX07H85wQQ8ijGbY4hiiSaz0PuTEwb6fkMOXCOdnjB6x0J0k81Wdyah",
+        "ANTHROPIC_BASE_URL": "https://api.kimi.com/coding/",
+        "ANTHROPIC_MODEL": "K2.6"
+    }
+}

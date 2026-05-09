@@ -1,0 +1,80 @@
+*
+* Visual Studio Code Server
+*
+* By using the software, you agree to
+* the Visual Studio Code Server License Terms (https://aka.ms/vscode-server-license) and
+* the Microsoft Privacy Statement (https://privacy.microsoft.com/en-US/privacystatement).
+*
+Server bound to /tmp/code-beddb195-45ab-44c1-b24f-8c9dce30aaf2
+Extension host agent listening on /tmp/code-beddb195-45ab-44c1-b24f-8c9dce30aaf2
+
+[08:33:51] 
+
+
+
+
+[reconnection-grace-time] No CLI argument provided, using default: 10800000ms (10800s)
+[08:33:51] Extension host agent started.
+[08:33:51] [<unknown>][c9fa656d][ExtensionHostConnection] New connection established.
+[08:33:51] [<unknown>][8e037e94][ManagementConnection] New connection established.
+[08:33:56] [<unknown>][c9fa656d][ExtensionHostConnection] <1519> Launched Extension Host Process.
+[08:33:57] [<unknown>][c9fa656d][ExtensionHostConnection] <1519> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[08:33:58] Getting Manifest... anthropic.claude-code
+[08:34:00] Installing extension: anthropic.claude-code {
+  productVersion: { version: '1.117.0', date: '2026-04-21T16:12:14-07:00' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: false,
+  donotVerifySignature: false,
+  context: { clientTargetPlatform: 'win32-x64' },
+  isBuiltin: false,
+  profileLocation: Vs {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[08:34:01] [<unknown>][8e037e94][ManagementConnection] The client has disconnected gracefully, so the connection will be disposed.
+[08:34:06] [<unknown>][c9fa656d][ExtensionHostConnection] <1519> Extension Host Process exited with code: 0, signal: null.
+[08:34:11] [<unknown>][2502222a][ExtensionHostConnection] New connection established.
+[08:34:11] [<unknown>][8cd9d2a2][ManagementConnection] New connection established.
+[08:34:11] [<unknown>][2502222a][ExtensionHostConnection] <1684> Launched Extension Host Process.
+[08:34:11] [<unknown>][2502222a][ExtensionHostConnection] <1684> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[08:34:16] Getting Manifest... anthropic.claude-code
+[08:34:17] Extension is already requested to install anthropic.claude-code file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[08:34:29] Extension signature verification result for anthropic.claude-code: Success. Internal Code: 0. Executed: true. Duration: 1465ms.
+[08:34:33] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.123-linux-x64: anthropic.claude-code
+[08:34:34] Renamed to /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.123-linux-x64
+[08:34:34] Marked extension as removed anthropic.claude-code-2.1.121-linux-x64
+[08:34:34] Extension installed successfully: anthropic.claude-code file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[08:35:10] Downloaded extension to file:///home/ubuntu/.vscode-server/data/CachedExtensionVSIXs/50db87ed-6fc7-44a4-adc8-bcb6e8daea9c
+[08:35:10] Installing extension: anthropic.claude-code {
+  productVersion: { version: '1.117.0', date: '2026-04-21T16:12:14-07:00' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: false,
+  donotVerifySignature: false,
+  donotIncludePackAndDependencies: true,
+  keepExisting: true,
+  isBuiltin: false,
+  profileLocation: Vs {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[08:35:10] Installing the extension without checking dependencies and pack anthropic.claude-code
+[08:35:10] Deleted existing extension from disk anthropic.claude-code /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.123-linux-x64
+[08:35:15] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.123: anthropic.claude-code
+[08:35:15] Renamed to /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.123
+[08:35:15] Extension installed successfully: anthropic.claude-code file:///home/ubuntu/.vscode-server/extensions/extensions.json

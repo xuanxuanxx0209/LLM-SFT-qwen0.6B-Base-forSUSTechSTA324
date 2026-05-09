@@ -1,0 +1,21 @@
+{
+  "platform": "codex",
+  "createdAt": "2026-03-17T04:11:53.247Z",
+  "entries": [
+    {
+      "originalPath": "/home/ubuntu/.ccman/codex.json",
+      "backupPath": null,
+      "existed": false
+    },
+    {
+      "originalPath": "/home/ubuntu/.codex/config.toml",
+      "backupPath": null,
+      "existed": false
+    },
+    {
+      "originalPath": "/home/ubuntu/.codex/auth.json",
+      "backupPath": null,
+      "existed": false
+    }
+  ]
+}

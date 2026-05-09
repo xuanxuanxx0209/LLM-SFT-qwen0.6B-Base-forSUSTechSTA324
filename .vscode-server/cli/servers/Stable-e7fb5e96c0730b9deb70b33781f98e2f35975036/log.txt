@@ -1,0 +1,70 @@
+*
+* Visual Studio Code Server
+*
+* By using the software, you agree to
+* the Visual Studio Code Server License Terms (https://aka.ms/vscode-server-license) and
+* the Microsoft Privacy Statement (https://privacy.microsoft.com/en-US/privacystatement).
+*
+Server bound to /tmp/code-559ae0ec-7a5d-4036-9e42-99dbbdfbf18e
+Extension host agent listening on /tmp/code-559ae0ec-7a5d-4036-9e42-99dbbdfbf18e
+
+[08:48:37] 
+
+
+
+
+[reconnection-grace-time] No CLI argument provided, using default: 10800000ms (10800s)
+[08:48:37] Extension host agent started.
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:37] Deleted marked for removal extension from disk anthropic.claude-code /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.85-linux-x64
+[08:48:37] Deleted marked for removal extension from disk ms-ceintl.vscode-language-pack-zh-hans /home/ubuntu/.vscode-server/extensions/ms-ceintl.vscode-language-pack-zh-hans-1.110.2026032711
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:37] [<unknown>][51438e9f][ManagementConnection] New connection established.
+[08:48:37] [<unknown>][279e78ab][ExtensionHostConnection] New connection established.
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:37] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:38] [<unknown>][279e78ab][ExtensionHostConnection] <5457> Launched Extension Host Process.
+[08:48:38] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:38] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:38] [<unknown>][279e78ab][ExtensionHostConnection] <5457> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[08:48:38] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:38] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:39] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:42] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:47] Getting Manifest... github.copilot-chat
+[08:48:48] #3: https://GitHub.gallerycdn.vsassets.io/extensions/github/copilot-chat/0.42.3/1775118259584/Microsoft.VisualStudio.Code.Manifest - error GET AggregateError [ETIMEDOUT]: 
+[08:48:50] Installing extension: github.copilot-chat {
+  productVersion: { version: '1.114.0', date: '2026-04-01T09:27:11Z' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: false,
+  donotVerifySignature: false,
+  context: { clientTargetPlatform: 'win32-x64' },
+  profileLocation: Ns {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[08:48:50] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:50] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:56] #7: https://GitHub.gallerycdn.vsassets.io/extensions/github/copilot-chat/0.42.3/1775118259584/Microsoft.VisualStudio.Services.VsixSignature - error GET AggregateError [ETIMEDOUT]: 
+[08:48:58] Extension signature verification result for github.copilot-chat: Success. Internal Code: 0. Executed: true. Duration: 735ms.
+[08:48:59] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.42.3: github.copilot-chat
+[08:48:59] Renamed to /home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.42.3
+[08:48:59] [/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0]: Extension is not compatible with Code 1.114.0. Extension requires: ^1.115.0.
+[08:48:59] Extension installed successfully: github.copilot-chat file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[08:48:59] Marked extension as removed github.copilot-chat-0.43.0
+[08:48:59] Marked extension as removed github.copilot-chat-0.41.2

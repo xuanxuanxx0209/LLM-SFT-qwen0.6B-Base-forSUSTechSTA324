@@ -1,0 +1,66 @@
+#!/bin/bash
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+OUTPUT_PATH="/home/ubuntu/models/Qwen3-0.6B-Base-SFT-Math"
+TB_LOG_DIR="${OUTPUT_PATH}/tensorboard_logs"
+
+source ~/miniconda3/etc/profile.d/conda.sh
+conda activate llm
+
+mkdir -p "${OUTPUT_PATH}"
+
+# Verify dependencies exist
+if [[ ! -f "${SCRIPT_DIR}/qwen3_math_sft_chat_template.jinja" ]]; then
+    echo "ERROR: Chat template not found in ${SCRIPT_DIR}"
+    exit 1
+fi
+
+if [[ ! -f "${SCRIPT_DIR}/launch_sft_math.py" ]]; then
+    echo "ERROR: Launcher script not found in ${SCRIPT_DIR}"
+    exit 1
+fi
+
+if [[ ! -f "/home/ubuntu/jgy-dataset/final_cleaned_high_quality.jsonl" ]]; then
+    echo "ERROR: Dataset not found at /home/ubuntu/jgy-dataset/final_cleaned_high_quality.jsonl"
+    exit 1
+fi
+
+echo "========================================"
+echo "Qwen3-0.6B-Base Math SFT Training"
+echo "========================================"
+echo "Model:     ${SCRIPT_DIR}"
+echo "Dataset:   /home/ubuntu/jgy-dataset/final_cleaned_high_quality.jsonl"
+echo "Output:    ${OUTPUT_PATH}"
+echo "LR:        1e-6"
+echo "Micro BS:  4"
+echo "Grad Acc:  4 (train_batch_size=16, 1 GPU)"
+echo "Epochs:    3"
+echo "Max Len:   4096"
+echo "TensorBoard: http://localhost:6006"
+echo "========================================"
+
+# Start TensorBoard in background
+echo "Starting TensorBoard on port 6006..."
+tensorboard --logdir "${TB_LOG_DIR}" --port 6006 --bind_all &
+TB_PID=$!
+sleep 3
+
+# Verify TensorBoard started
+if ! kill -0 ${TB_PID} 2>/dev/null; then
+    echo "WARNING: TensorBoard failed to start. Continuing without it..."
+fi
+
+# Run training
+echo "Starting training..."
+python "${SCRIPT_DIR}/launch_sft_math.py"
+
+echo ""
+echo "Training complete!"
+echo "Final model saved to: ${OUTPUT_PATH}"
+
+# Stop TensorBoard
+kill ${TB_PID} 2>/dev/null || true
+wait ${TB_PID} 2>/dev/null || true
+
+echo "Done."

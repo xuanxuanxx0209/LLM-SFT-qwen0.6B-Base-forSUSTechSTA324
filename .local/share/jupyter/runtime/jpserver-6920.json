@@ -1,0 +1,13 @@
+{
+  "base_url": "/",
+  "hostname": "0.0.0.0",
+  "password": false,
+  "pid": 6920,
+  "port": 8888,
+  "root_dir": "/home/ubuntu/llm",
+  "secure": false,
+  "sock": "",
+  "token": "1e853ed8a3e80b539494b5970cbb8b4b44484cb8de737694",
+  "url": "http://sustech-llm-120gb-25m:8888/",
+  "version": "2.17.0"
+}

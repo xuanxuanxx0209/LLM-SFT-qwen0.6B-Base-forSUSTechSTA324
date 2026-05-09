@@ -1,0 +1,87 @@
+*
+* Visual Studio Code Server
+*
+* By using the software, you agree to
+* the Visual Studio Code Server License Terms (https://aka.ms/vscode-server-license) and
+* the Microsoft Privacy Statement (https://privacy.microsoft.com/en-US/privacystatement).
+*
+Server bound to /tmp/code-a2126c32-047f-425e-a336-bb737a42dea3
+Extension host agent listening on /tmp/code-a2126c32-047f-425e-a336-bb737a42dea3
+
+[03:13:50] 
+
+
+
+
+[reconnection-grace-time] No CLI argument provided, using default: 10800000ms (10800s)
+[03:13:50] Extension host agent started.
+[03:13:50] Removing stale auto-update builtin extensions: github.copilot-chat@0.43.0
+[03:13:50] Deleted stale auto-update builtin extension from disk github.copilot-chat /home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0
+[03:13:50] hn [Error]: Unable to read file '/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0/package.json' (Error: Unable to resolve nonexistent file '/home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0/package.json')
+    at ki.restoreReadError (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:440:9650)
+    at ki.doReadFileStream (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:440:9434)
+    at async ki.doReadFile (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:440:8698)
+    at async yd.scanExtensionManifest (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:430:48523)
+    at async yd.scanExtension (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:430:46721)
+    at async ga.scanExistingExtension (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:430:36843)
+    at async Im.scanUserExtensionAtLocation (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:431:26084)
+    at async Promise.all (index 0)
+    at async _v.onDidRemoveExtensions (file:///home/ubuntu/.vscode-server/cli/servers/Stable-560a9dba96f961efea7b1612916f89e5d5d4d679/server/out/server-main.js:431:11204) {
+  fileOperationResult: 1,
+  options: { preferUnbuffered: true }
+}
+[03:13:50] Extension not found at the location file:///home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.43.0
+[03:13:50] [<unknown>][95d805f5][ManagementConnection] New connection established.
+[03:13:50] [<unknown>][df5522b4][ExtensionHostConnection] New connection established.
+[03:13:50] Marked extension as removed github.copilot-chat-0.44.1
+[03:13:51] [<unknown>][df5522b4][ExtensionHostConnection] <1636> Launched Extension Host Process.
+[03:13:51] [<unknown>][df5522b4][ExtensionHostConnection] <1636> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[03:13:53] Getting Manifest... github.copilot-chat
+[03:13:53] Getting Manifest... anthropic.claude-code
+[03:13:54] Installing extension: anthropic.claude-code {
+  productVersion: { version: '1.116.0', date: '2026-04-15T00:28:13Z' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: false,
+  donotVerifySignature: false,
+  context: { clientTargetPlatform: 'win32-x64' },
+  isBuiltin: false,
+  profileLocation: Vs {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[03:13:54] Installing extension: github.copilot-chat {
+  productVersion: { version: '1.116.0', date: '2026-04-15T00:28:13Z' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: true,
+  donotVerifySignature: false,
+  context: { clientTargetPlatform: 'win32-x64' },
+  isBuiltin: true,
+  profileLocation: Vs {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[03:14:25] Extension signature verification result for anthropic.claude-code: Success. Internal Code: 0. Executed: true. Duration: 3583ms.
+[03:14:26] Extension signature verification result for github.copilot-chat: Success. Internal Code: 0. Executed: true. Duration: 800ms.
+[03:14:27] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.118-linux-x64: anthropic.claude-code
+[03:14:27] Renamed to /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.118-linux-x64
+[03:14:27] Extension installed successfully: anthropic.claude-code file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[03:14:27] Marked extension as removed anthropic.claude-code-2.1.112-linux-x64
+[03:14:27] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.44.2: github.copilot-chat
+[03:14:27] Renamed to /home/ubuntu/.vscode-server/extensions/github.copilot-chat-0.44.2
+[03:14:27] Extension installed successfully: github.copilot-chat file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[04:39:13] [<unknown>][95d805f5][ManagementConnection] The client has disconnected, will wait for reconnection 3h before disposing...

@@ -1,0 +1,66 @@
+#!/bin/bash
+set -e
+
+MODEL_PATH="/home/ubuntu/models/Qwen3-0.6B-Base"
+DATASET="/home/ubuntu/jgy-dataset/sftdata_plus_general100_plus_critical_thinking100.jsonl"
+OUTPUT_DIR="/home/ubuntu/models/Qwen3-0.6B-SFT-Math"
+TB_DIR="/home/ubuntu/tb_combined/qwen3-0.6b-sft-math"
+LOG_FILE="${OUTPUT_DIR}/training.log"
+
+mkdir -p "$OUTPUT_DIR"
+mkdir -p "$TB_DIR"
+
+# 启动 TensorBoard（如果 6006 端口未被占用）
+if ! ss -tlnp | grep -q ':6006 '; then
+    echo "Starting TensorBoard on port 6006..."
+    nohup /home/ubuntu/miniconda3/envs/llm/bin/tensorboard --logdir="$TB_DIR" --port=6006 --host=0.0.0.0 > "${OUTPUT_DIR}/tensorboard.log" 2>&1 &
+    sleep 2
+    echo "TensorBoard PID: $!"
+else
+    echo "Port 6006 is already in use, skipping TensorBoard start."
+fi
+
+DEEPSPEED_BIN="/home/ubuntu/miniconda3/envs/llm/bin/deepspeed"
+PYTHON_BIN="/home/ubuntu/miniconda3/envs/llm/bin/python"
+
+export CUDA_VISIBLE_DEVICES=0
+export PYTHONPATH="/home/ubuntu/llm:${PYTHONPATH}"
+export PATH="/home/ubuntu/miniconda3/envs/llm/bin:${PATH}"
+
+# 设置缓存目录
+export TMPDIR="/tmp"
+export HF_HOME="/home/ubuntu/.cache/hf"
+export HF_DATASETS_CACHE="/home/ubuntu/.cache/datasets"
+export TRANSFORMERS_CACHE="/home/ubuntu/.cache/transformers"
+export TORCH_HOME="/home/ubuntu/.cache/torch"
+export PYTORCH_ALLOC_CONF="expandable_segments:True"
+
+# 训练参数
+# batch size 16 = micro 4 * gradient_accumulation 4
+# 学习率 2e-6
+# epoch 3
+# 不保存 checkpoint (save_steps=-1)，只保留最终模型
+
+exec "$DEEPSPEED_BIN" \
+    --master_port 29663 \
+    --module openrlhf.cli.train_sft \
+    --pretrain "$MODEL_PATH" \
+    --dataset "$DATASET" \
+    --input_key question \
+    --output_key solution \
+    --apply_chat_template \
+    --max_len 8192 \
+    --max_epochs 3 \
+    --micro_train_batch_size 4 \
+    --train_batch_size 16 \
+    --save_path "$OUTPUT_DIR" \
+    --save_steps -1 \
+    --logging_steps 1 \
+    --zero_stage 0 \
+    --learning_rate 2e-6 \
+    --gradient_checkpointing \
+    --attn_implementation flash_attention_2 \
+    --use_tensorboard "$TB_DIR" \
+    --wandb_run_name "qwen3-0.6b-sft-math" \
+    --lr_warmup_ratio 0.03 \
+    "$@" 2>&1 | tee "$LOG_FILE"

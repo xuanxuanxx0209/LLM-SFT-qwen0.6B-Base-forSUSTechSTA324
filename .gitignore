@@ -1,0 +1,112 @@
+# .gitignore — 针对 Python + ML 项目（自动生成）
+# 包含：虚拟环境、缓存、模型检查点、日志、IDE 配置等
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions and compiled files
+*.so
+*.o
+*.dylib
+*.dll
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+pip-wheel-metadata/
+wheelhouse/
+
+# Virtual environments and conda
+.venv/
+venv/
+env/
+ENV/
+venv*/
+.conda/
+miniconda3/
+conda-meta/
+
+# Python tooling caches
+.pytest_cache/
+.mypy_cache/
+.cache/
+pip-log.txt
+
+# Jupyter Notebook
+.ipynb_checkpoints/
+
+# IDE / editor settings
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Logs, PIDs and temp files
+*.log
+*.pid
+logs/
+tmp/
+temp/
+
+# Model checkpoints and large artifacts
+*.pt
+*.pth
+*.ckpt
+*.safetensors
+*.bin
+*.h5
+*.tar
+*.tar.gz
+*.zip
+models/
+checkpoints/
+weights/
+trainer_output/
+runs/
+tmp_train/
+tb_combined/
+
+# Data and large generated files
+data/
+datasets/
+jgy-dataset/
+lab_inference/results/
+results/
+*.csv
+*.parquet
+*.npz
+*.npy
+*.jsonl
+
+# TensorBoard
+tensorboard/
+tensorboard.pid
+
+# OS generated files
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Secrets and credentials
+.env
+.env.*
+*.pem
+*.key
+*.crt
+credentials.json
+*.secret
+
+# Misc
+*.pyc
+*.pyo
+*.pyd
+*.class
+
+# Keep .gitignore itself tracked
+!.gitignore
+
+# 如果需要追踪被忽略的已存在文件，使用 git add -f <path> 或手动移除对应规则

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Launch TensorBoard against the SFT run's TensorBoard log directory.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+TB_DIR="${TB_DIR:-${SCRIPT_DIR}/tensorboard}"
+PORT="${PORT:-6006}"
+HOST="${HOST:-0.0.0.0}"
+
+PYTHON_BIN="${PYTHON_BIN:-/home/ubuntu/miniconda3/envs/llm/bin/python}"
+
+mkdir -p "${TB_DIR}"
+
+echo "[$(date -u +%FT%TZ)] Starting TensorBoard"
+echo "  logdir: ${TB_DIR}"
+echo "  host:   ${HOST}"
+echo "  port:   ${PORT}"
+echo "  open:   http://localhost:${PORT}/"
+
+exec "${PYTHON_BIN}" -m tensorboard.main \
+    --logdir "${TB_DIR}" \
+    --host "${HOST}" \
+    --port "${PORT}" \
+    --reload_interval 5

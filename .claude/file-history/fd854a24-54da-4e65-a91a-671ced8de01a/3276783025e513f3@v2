@@ -1,0 +1,87 @@
+#!/usr/bin/env python3
+import json
+import sys
+from pathlib import Path
+
+sys.path.insert(0, "/home/ubuntu/validation-set")
+from score_valid_outputs import extract_prediction, answers_match
+
+from vllm import LLM, SamplingParams
+from transformers import AutoTokenizer
+
+MODEL_PATH = "/home/ubuntu/Qwen3-0.6B-Base-Math-SFT"
+DATA_PATH = "/home/ubuntu/validation-set/valid_1000.jsonl"
+
+SYSTEM_PROMPT = (
+    "You are a clear, careful, and reliable assistant. "
+    "If reasoning is included, it must appear only under the Thinking section. "
+    "The final user-facing reply must be written as a complete answer under Answer. "
+    "Do not produce any tool call, function call, plugin request, or external action format."
+)
+
+print("Loading tokenizer...")
+tokenizer = AutoTokenizer.from_pretrained(MODEL_PATH, trust_remote_code=True)
+
+print("Loading model with vLLM...")
+llm = LLM(
+    model=MODEL_PATH,
+    trust_remote_code=True,
+    dtype="bfloat16",
+    max_model_len=4096,
+    gpu_memory_utilization=0.9,
+)
+
+print("Reading dataset...")
+questions = []
+answers = []
+with open(DATA_PATH, "r", encoding="utf-8") as f:
+    for line in f:
+        item = json.loads(line)
+        questions.append(item["question"])
+        answers.append(item["answer"])
+
+print(f"Total questions: {len(questions)}")
+
+prompts = []
+for q in questions:
+    messages = [
+        {"role": "system", "content": SYSTEM_PROMPT},
+        {"role": "user", "content": q},
+    ]
+    prompt = tokenizer.apply_chat_template(
+        messages,
+        tokenize=False,
+        add_generation_prompt=True,
+        enable_thinking=False,
+    )
+    prompts.append(prompt)
+
+sampling_params = SamplingParams(
+    temperature=0.0,
+    top_p=1.0,
+    max_tokens=2048,
+)
+
+print("Running inference...")
+outputs = llm.generate(prompts, sampling_params)
+
+correct = 0
+total = len(outputs)
+
+for i, out in enumerate(outputs):
+    generated = out.outputs[0].text
+    pred = extract_prediction(generated)
+    gold = str(answers[i])
+    match = answers_match(pred, gold)
+    if match:
+        correct += 1
+    # Print first few for sanity check
+    if i < 5:
+        print(f"--- Example {i+1} ---")
+        print(f"Q: {questions[i]}")
+        print(f"Generated: {generated[:500]}")
+        print(f"Pred: {pred} | Gold: {gold} | Match: {match}")
+
+accuracy = correct / total * 100
+print(f"\nCorrect: {correct} / {total}")
+print(f"Accuracy: {accuracy:.2f}%")

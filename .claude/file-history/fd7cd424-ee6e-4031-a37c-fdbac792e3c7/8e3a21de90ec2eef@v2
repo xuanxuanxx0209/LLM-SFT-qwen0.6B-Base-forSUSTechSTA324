@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Start a TensorBoard server bound to all interfaces so the loss curves can be
+# watched live (default: http://<host>:6006).
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+RUN_DIR="${SCRIPT_DIR}"
+TB_DIR="${RUN_DIR}/tensorboard"
+LOG_DIR="${RUN_DIR}/logs"
+mkdir -p "${TB_DIR}" "${LOG_DIR}"
+
+PORT="${TB_PORT:-6006}"
+HOST="${TB_HOST:-0.0.0.0}"
+
+PYTHON_BIN=/home/ubuntu/miniconda3/envs/llm/bin/python
+
+echo "[tensorboard] logdir = ${TB_DIR}"
+echo "[tensorboard] url    = http://${HOST}:${PORT}/   (open from your local browser, replace 0.0.0.0 with the server IP)"
+
+exec "${PYTHON_BIN}" -m tensorboard.main \
+    --logdir "${TB_DIR}" \
+    --bind_all \
+    --port "${PORT}" \
+    --reload_interval 5

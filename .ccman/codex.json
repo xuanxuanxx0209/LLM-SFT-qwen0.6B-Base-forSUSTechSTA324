@@ -1,0 +1,15 @@
+{
+  "providers": [
+    {
+      "id": "codex-1773720713248-1u3690",
+      "name": "gmn",
+      "baseUrl": "https://gmn.chuangzuoli.com",
+      "apiKey": "sk-5c91a1ef23640cb37b14fe1557894227ad74cb02f0c86c772ee3112257c68060",
+      "createdAt": 1773720713248,
+      "lastModified": 1773720713248,
+      "lastUsedAt": 1773720713248
+    }
+  ],
+  "presets": [],
+  "currentProviderId": "codex-1773720713248-1u3690"
+}

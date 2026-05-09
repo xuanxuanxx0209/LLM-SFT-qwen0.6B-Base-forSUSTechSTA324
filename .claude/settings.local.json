@@ -1,0 +1,11 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(source /home/ubuntu/miniconda3/etc/profile.d/conda.sh)",
+      "Bash(conda activate:*)",
+      "Bash(python /home/ubuntu/lab_inference/scripts/03_decoding_compare.py)",
+      "Bash(conda run *)",
+      "Bash(1)"
+    ]
+  }
+}

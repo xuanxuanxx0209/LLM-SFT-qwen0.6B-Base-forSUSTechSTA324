@@ -1,0 +1,25 @@
+*
+* Visual Studio Code Server
+*
+* By using the software, you agree to
+* the Visual Studio Code Server License Terms (https://aka.ms/vscode-server-license) and
+* the Microsoft Privacy Statement (https://privacy.microsoft.com/en-US/privacystatement).
+*
+Server bound to /tmp/code-55301bff-7a5e-474a-9e21-e65e3d4e47e8
+Extension host agent listening on /tmp/code-55301bff-7a5e-474a-9e21-e65e3d4e47e8
+
+[06:46:59] 
+
+
+
+
+[reconnection-grace-time] No CLI argument provided, using default: 10800000ms (10800s)
+[06:46:59] Extension host agent started.
+[06:46:59] Marked extension as removed anthropic.claude-code-2.1.133-linux-x64
+[06:46:59] Deleted marked for removal extension from disk anthropic.claude-code /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.133-linux-x64
+[06:46:59] [<unknown>][c68c17cd][ManagementConnection] New connection established.
+[06:46:59] [<unknown>][770ce55e][ExtensionHostConnection] New connection established.
+[06:47:00] [<unknown>][770ce55e][ExtensionHostConnection] <6815> Launched Extension Host Process.
+[06:47:01] [<unknown>][770ce55e][ExtensionHostConnection] <6815> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[08:08:43] [<unknown>][c68c17cd][ManagementConnection] The client has disconnected, will wait for reconnection 3h before disposing...

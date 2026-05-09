@@ -1,0 +1,82 @@
+#!/usr/bin/env python3
+"""Convert raw Q/A dataset into OpenRLHF messages format.
+
+Input  schema (per JSONL line):  question, solution (reasoning + ``#### N``),
+                                 answer (``\\boxed{N}``), id
+Output schema:                   {"messages": [user, assistant]}
+                                 assistant content = "<think>{reasoning}</think>{boxed_answer}"
+
+The split is done at the LAST ``\n\n#### `` marker so the reasoning excludes
+the trailing short answer line; the canonical boxed answer comes from the
+``answer`` field.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import re
+from pathlib import Path
+
+
+REASONING_SPLIT = re.compile(r"\n\n#### [^\n]*\s*$")
+
+
+def split_reasoning(solution: str) -> str:
+    """Strip the trailing ``\n\n#### N`` block from ``solution`` if present."""
+    stripped = solution.rstrip()
+    match = REASONING_SPLIT.search(stripped)
+    if match is None:
+        return stripped
+    return stripped[: match.start()].rstrip()
+
+
+def convert_record(record: dict) -> dict:
+    question = record["question"].strip()
+    solution = record["solution"]
+    boxed_answer = record["answer"].strip()
+
+    reasoning = split_reasoning(solution)
+    assistant_content = f"<think>{reasoning}</think>{boxed_answer}"
+
+    return {
+        "messages": [
+            {"role": "user", "content": question},
+            {"role": "assistant", "content": assistant_content},
+        ],
+        "id": record.get("id", ""),
+    }
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--input", required=True)
+    parser.add_argument("--output", required=True)
+    args = parser.parse_args()
+
+    in_path = Path(args.input)
+    out_path = Path(args.output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    written = 0
+    skipped = 0
+    with in_path.open("r", encoding="utf-8") as f_in, out_path.open(
+        "w", encoding="utf-8"
+    ) as f_out:
+        for raw in f_in:
+            raw = raw.strip()
+            if not raw:
+                continue
+            record = json.loads(raw)
+            if not record.get("question") or not record.get("solution") or not record.get("answer"):
+                skipped += 1
+                continue
+            converted = convert_record(record)
+            f_out.write(json.dumps(converted, ensure_ascii=False) + "\n")
+            written += 1
+
+    print(f"wrote={written} skipped={skipped} -> {out_path}")
+
+
+if __name__ == "__main__":
+    main()

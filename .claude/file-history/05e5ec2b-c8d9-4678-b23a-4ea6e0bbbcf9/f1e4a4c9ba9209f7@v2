@@ -1,0 +1,99 @@
+#!/usr/bin/env python3
+"""Render a static PNG of the live SFT loss curve from the TensorBoard event file.
+
+Usable while training is still in progress because the EventAccumulator only reads
+already-flushed events.  Output: ``loss_curve.png`` in the run directory.
+"""
+
+from __future__ import annotations
+
+import argparse
+from pathlib import Path
+
+import matplotlib
+
+matplotlib.use("Agg")
+import matplotlib.pyplot as plt
+from tensorboard.backend.event_processing.event_accumulator import EventAccumulator
+
+
+def load_loss_series(tb_dir: Path) -> tuple[list[int], list[float], str]:
+    accumulators = []
+    for event_file in tb_dir.rglob("events.out.tfevents.*"):
+        accumulator = EventAccumulator(
+            str(event_file.parent),
+            size_guidance={"scalars": 0},  # 0 = load all events
+        )
+        accumulator.Reload()
+        accumulators.append(accumulator)
+    if not accumulators:
+        raise SystemExit(f"No TensorBoard event files under {tb_dir}")
+
+    preferred_tags = ["train/loss", "loss", "train/gpt_loss", "gpt_loss"]
+    chosen_tag = None
+    for accumulator in accumulators:
+        available = accumulator.Tags().get("scalars", [])
+        for candidate in preferred_tags:
+            if candidate in available:
+                chosen_tag = candidate
+                break
+        if chosen_tag:
+            break
+    if chosen_tag is None:
+        # Fall back to the first scalar tag we see anywhere.
+        for accumulator in accumulators:
+            available = accumulator.Tags().get("scalars", [])
+            if available:
+                chosen_tag = available[0]
+                break
+    if chosen_tag is None:
+        raise SystemExit("No scalar tags found in TensorBoard event files yet.")
+
+    steps: list[int] = []
+    values: list[float] = []
+    for accumulator in accumulators:
+        if chosen_tag in accumulator.Tags().get("scalars", []):
+            for event in accumulator.Scalars(chosen_tag):
+                steps.append(event.step)
+                values.append(event.value)
+    paired = sorted(zip(steps, values), key=lambda item: item[0])
+    steps_sorted = [step for step, _ in paired]
+    values_sorted = [value for _, value in paired]
+    return steps_sorted, values_sorted, chosen_tag
+
+
+def main() -> None:
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--tb-dir", required=True)
+    parser.add_argument("--output", required=True)
+    parser.add_argument("--ema", type=float, default=0.9, help="EMA smoothing factor")
+    args = parser.parse_args()
+
+    tb_dir = Path(args.tb_dir)
+    out_path = Path(args.output)
+    out_path.parent.mkdir(parents=True, exist_ok=True)
+
+    steps, values, tag = load_loss_series(tb_dir)
+
+    # EMA-smoothed view to make the trend obvious.
+    smoothed: list[float] = []
+    accumulator = values[0] if values else 0.0
+    for value in values:
+        accumulator = args.ema * accumulator + (1.0 - args.ema) * value
+        smoothed.append(accumulator)
+
+    plt.figure(figsize=(10, 5))
+    plt.plot(steps, values, color="#9aa0a6", linewidth=0.9, alpha=0.6, label="raw")
+    plt.plot(steps, smoothed, color="#1a73e8", linewidth=1.8, label=f"EMA={args.ema}")
+    plt.xlabel("global step")
+    plt.ylabel(tag)
+    plt.title(f"Qwen3-0.6B-Base SFT loss ({len(steps)} points, last={values[-1]:.4f})")
+    plt.grid(True, alpha=0.3)
+    plt.legend()
+    plt.tight_layout()
+    plt.savefig(out_path, dpi=130)
+    print(f"saved -> {out_path}  (tag={tag}, steps={len(steps)}, last={values[-1]:.4f})")
+
+
+if __name__ == "__main__":
+    main()

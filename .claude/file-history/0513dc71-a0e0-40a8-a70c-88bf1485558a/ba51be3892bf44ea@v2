@@ -1,0 +1,77 @@
+#!/usr/bin/env bash
+# Launch full-parameter SFT for Qwen3-0.6B-Base via OpenRLHF on a single GPU.
+# lr=2e-6, filtered dataset, no intermediate checkpoints.
+set -euo pipefail
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+RUN_DIR="${SCRIPT_DIR}"
+
+PYTHON_BIN=/home/ubuntu/miniconda3/envs/llm/bin/python
+DEEPSPEED_BIN=/home/ubuntu/miniconda3/envs/llm/bin/deepspeed
+
+export PATH=/home/ubuntu/miniconda3/envs/llm/bin:${PATH}
+
+MODEL_PATH=/home/ubuntu/models/Qwen3-0.6B-Base
+TRAIN_DATA="${RUN_DIR}/data/train.jsonl"
+CHAT_TEMPLATE_FILE=/home/ubuntu/llm/scripts/sft_async_pipeline/templates/qwen3_06b_base_eot_chat_template.jinja
+
+FINAL_DIR="${RUN_DIR}/final_model"
+TB_DIR="${RUN_DIR}/tensorboard"
+LOG_DIR="${RUN_DIR}/logs"
+mkdir -p "${FINAL_DIR}" "${TB_DIR}" "${LOG_DIR}"
+
+MAX_LEN=4096
+MAX_EPOCHS=3
+MICRO_BATCH=4
+GRAD_ACCUM=4
+TRAIN_BATCH_SIZE=$((MICRO_BATCH * GRAD_ACCUM))
+LEARNING_RATE=2e-6
+ZERO_STAGE=2
+ATTN_IMPL=flash_attention_2
+MASTER_PORT=29675
+
+CHAT_TEMPLATE="$(cat "${CHAT_TEMPLATE_FILE}")"
+
+CACHE_ROOT=/dev/shm/qwen3_sft_filtered_lr2e6_cache
+mkdir -p "${CACHE_ROOT}"/{tmp,hf,datasets,transformers,torch,triton,xdg}
+export TMPDIR="${CACHE_ROOT}/tmp"
+export HF_HOME="${CACHE_ROOT}/hf"
+export HF_DATASETS_CACHE="${CACHE_ROOT}/datasets"
+export TRANSFORMERS_CACHE="${CACHE_ROOT}/transformers"
+export TORCH_HOME="${CACHE_ROOT}/torch"
+export TRITON_CACHE_DIR="${CACHE_ROOT}/triton"
+export XDG_CACHE_HOME="${CACHE_ROOT}/xdg"
+export PYTORCH_ALLOC_CONF="expandable_segments:True"
+export TOKENIZERS_PARALLELISM=false
+export CUDA_VISIBLE_DEVICES=0
+
+echo "[launch] run_dir       = ${RUN_DIR}"
+echo "[launch] model_path    = ${MODEL_PATH}"
+echo "[launch] train_data    = ${TRAIN_DATA}"
+echo "[launch] tensorboard   = ${TB_DIR}"
+echo "[launch] final_model   = ${FINAL_DIR}"
+echo "[launch] hyperparams   : lr=${LEARNING_RATE}, epochs=${MAX_EPOCHS}, micro=${MICRO_BATCH}, ga=${GRAD_ACCUM}, train_bs=${TRAIN_BATCH_SIZE}"
+echo "[launch] attn=${ATTN_IMPL}, zero=${ZERO_STAGE}, no_checkpoints"
+
+exec "${DEEPSPEED_BIN}" \
+    --master_port "${MASTER_PORT}" \
+    --module openrlhf.cli.train_sft \
+    --pretrain "${MODEL_PATH}" \
+    --dataset "${TRAIN_DATA}" \
+    --input_key messages \
+    --apply_chat_template \
+    --multiturn \
+    --tokenizer_chat_template "${CHAT_TEMPLATE}" \
+    --max_len "${MAX_LEN}" \
+    --max_epochs "${MAX_EPOCHS}" \
+    --micro_train_batch_size "${MICRO_BATCH}" \
+    --train_batch_size "${TRAIN_BATCH_SIZE}" \
+    --learning_rate "${LEARNING_RATE}" \
+    --zero_stage "${ZERO_STAGE}" \
+    --param_dtype bf16 \
+    --gradient_checkpointing \
+    --attn_implementation "${ATTN_IMPL}" \
+    --save_path "${FINAL_DIR}" \
+    --logging_steps 1 \
+    --use_tensorboard "${TB_DIR}" \
+    --wandb_run_name "qwen3_0_6b_base_sft_filtered_lr2e6_${RUN_DIR##*/}"
