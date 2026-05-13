@@ -398,3 +398,21 @@ git commit -m "Initial commit"
 git branch -M main
 git add .
 git commit -m "Initial commit"
+git reset
+git rm -r --cached .claude
+git rm -r --cached .copilot
+git rm -r --cached .config/vllm/usage_stats.json
+echo ".claude/" >> .gitignore
+echo ".copilot/" >> .gitignore
+echo ".config/vllm/usage_stats.json" >> .gitignore
+git status
+git restore --staged .claude/ .copilot/ .config/
+git add .gitignore
+git add run_eval.py
+git commit -m "Add run_eval.py only, ignore system files"
+git pull --rebase origin main
+git add run_eval.py .gitignore
+git commit -m "Prepare for pull: commit local changes"
+git stash push -m "Temporary stash before pull"
+git pull --rebase origin main
+git stash pop

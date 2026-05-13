@@ -5,21 +5,51 @@
 * the Visual Studio Code Server License Terms (https://aka.ms/vscode-server-license) and
 * the Microsoft Privacy Statement (https://privacy.microsoft.com/en-US/privacystatement).
 *
-Server bound to /tmp/code-55301bff-7a5e-474a-9e21-e65e3d4e47e8
-Extension host agent listening on /tmp/code-55301bff-7a5e-474a-9e21-e65e3d4e47e8
+Server bound to /tmp/code-1a1d4c11-2e97-42aa-bb7d-7afa668455b3
+Extension host agent listening on /tmp/code-1a1d4c11-2e97-42aa-bb7d-7afa668455b3
 
-[06:46:59] 
+[15:59:44] 
 
 
 
 
 [reconnection-grace-time] No CLI argument provided, using default: 10800000ms (10800s)
-[06:46:59] Extension host agent started.
-[06:46:59] Marked extension as removed anthropic.claude-code-2.1.133-linux-x64
-[06:46:59] Deleted marked for removal extension from disk anthropic.claude-code /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.133-linux-x64
-[06:46:59] [<unknown>][c68c17cd][ManagementConnection] New connection established.
-[06:46:59] [<unknown>][770ce55e][ExtensionHostConnection] New connection established.
-[06:47:00] [<unknown>][770ce55e][ExtensionHostConnection] <6815> Launched Extension Host Process.
-[06:47:01] [<unknown>][770ce55e][ExtensionHostConnection] <6815> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+[15:59:44] Extension host agent started.
+[15:59:45] [<unknown>][a0bcdb6a][ManagementConnection] New connection established.
+[15:59:45] [<unknown>][ab8a9a0b][ExtensionHostConnection] New connection established.
+[15:59:51] [<unknown>][ab8a9a0b][ExtensionHostConnection] <1490> Launched Extension Host Process.
+[15:59:52] [<unknown>][ab8a9a0b][ExtensionHostConnection] <1490> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
 
-[08:08:43] [<unknown>][c68c17cd][ManagementConnection] The client has disconnected, will wait for reconnection 3h before disposing...
+[15:59:54] [<unknown>][a0bcdb6a][ManagementConnection] The client has disconnected gracefully, so the connection will be disposed.
+[15:59:55] [<unknown>][ab8a9a0b][ExtensionHostConnection] <1490> Extension Host Process exited with code: 0, signal: null.
+[16:00:23] [<unknown>][4c1c4779][ExtensionHostConnection] New connection established.
+[16:00:23] [<unknown>][5d0edb0e][ManagementConnection] New connection established.
+[16:00:23] [<unknown>][4c1c4779][ExtensionHostConnection] <1682> Launched Extension Host Process.
+[16:00:24] [<unknown>][4c1c4779][ExtensionHostConnection] <1682> [reconnection-grace-time] Extension host: read VSCODE_RECONNECTION_GRACE_TIME=10800000ms (10800s)
+
+[16:00:26] Getting Manifest... anthropic.claude-code
+[16:00:27] Installing extension: anthropic.claude-code {
+  productVersion: { version: '1.119.0', date: '2026-05-05T11:23:50-07:00' },
+  pinned: false,
+  operation: 3,
+  isApplicationScoped: false,
+  donotVerifySignature: false,
+  context: { clientTargetPlatform: 'win32-x64' },
+  isBuiltin: false,
+  profileLocation: Hs {
+    scheme: 'file',
+    authority: '',
+    path: '/home/ubuntu/.vscode-server/extensions/extensions.json',
+    query: '',
+    fragment: '',
+    _formatted: 'file:///home/ubuntu/.vscode-server/extensions/extensions.json',
+    _fsPath: '/home/ubuntu/.vscode-server/extensions/extensions.json'
+  }
+}
+[16:00:54] Extension signature verification result for anthropic.claude-code: Success. Internal Code: 0. Executed: true. Duration: 1900ms.
+[16:01:01] Extracted extension to file:///home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.140-linux-x64: anthropic.claude-code
+[16:01:01] Renamed to /home/ubuntu/.vscode-server/extensions/anthropic.claude-code-2.1.140-linux-x64
+[16:01:01] Marked extension as removed anthropic.claude-code-2.1.138-linux-x64
+[16:01:01] Extension installed successfully: anthropic.claude-code file:///home/ubuntu/.vscode-server/extensions/extensions.json
+[16:01:04] [File Watcher ('parcel')] Unexpected error: inotify_add_watch on '/home/ubuntu/.claude/shell-snapshots' failed: No such file or directory (EUNKNOWN) (path: /home/ubuntu)
+[16:01:04] [File Watcher (universal)] inotify_add_watch on '/home/ubuntu/.claude/shell-snapshots' failed: No such file or directory

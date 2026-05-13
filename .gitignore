@@ -73,7 +73,6 @@ tb_combined/
 # Data and large generated files
 data/
 datasets/
-jgy-dataset/
 lab_inference/results/
 results/
 *.csv
@@ -81,6 +80,8 @@ results/
 *.npz
 *.npy
 *.jsonl
+!jgy-dataset/*.jsonl
+!validation-set/*.jsonl
 
 # TensorBoard
 tensorboard/
