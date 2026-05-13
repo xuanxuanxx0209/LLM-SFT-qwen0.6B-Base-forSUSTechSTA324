@@ -13,7 +13,7 @@
 | **数据来源** | Nemotron-CC-Math-v1 清洗结果 |
 | **验证集** | 1000 道数学推理题（含 perturbation_type 分桶标签） |
 | **最佳模型** | `qwen3-0.6B-mathsft-V3-lora-merged-v5` —— 验证集准确率 **46.80%** |
-
+| **Hugging Face** | [Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project](https://huggingface.co/Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project) |
 ---
 
 ## 目录结构
@@ -153,10 +153,9 @@ merged.save_pretrained(MERGED_PATH, safe_serialization=True)
 
 ## 模型权重获取
 
-本仓库仅包含代码、数据集与配置文件。**模型权重文件过大（单文件 >1GB）**，未存入 GitHub。如需获取：
+最终最佳模型已上传至 Hugging Face Hub：
 
-1. **最终最佳模型**（推荐）：`qwen3-0.6B-mathsft-V3-lora-merged-v5` —— 请通过 Hugging Face Hub 或联系作者获取。
-2. **自行复现**：按照下方 [快速开始](#快速开始) 步骤，使用本仓库代码从头训练即可得到相同结果。
+**[Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project](https://huggingface.co/Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project)**
 
 ---
 
