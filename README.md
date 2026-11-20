@@ -1,263 +1,97 @@
 # Qwen3-0.6B-Base 数学能力 SFT / LoRA 微调
 
-> 期中项目：基于 Nemotron-CC-Math-v1 清洗数据，对 Qwen3-0.6B-Base 进行全量 SFT 与 LoRA 弱项强化，提升数学推理能力。
+南方科技大学 STA324 期中项目。我们对 [Qwen3-0.6B-Base](https://huggingface.co/Qwen/Qwen3-0.6B-Base) 做全量监督微调（SFT），再以数学 SFT 模型 **V3（step 477）** 为起点，用 LoRA 强化条件不足的应用题。训练使用 OpenRLHF 和 DeepSpeed ZeRO-2。
 
----
+| 评测记录 | 准确率 |
+| --- | ---: |
+| 原始 V3，自行评测 | 44.30% |
+| **LoRA v5，自行评测** | **46.80%** |
+| 课程平台榜单，组内最高记录 | 46.40% |
 
-## 项目概览
+自行评测使用 `valid_1000.jsonl`，v5 比原始 V3 多答对 **25 道**，提升 **2.50 个百分点**。课程平台分数以榜单记录为准。发布权重见 [模型权重获取](#模型权重获取)。
 
-| 项目 | 内容 |
-|------|------|
-| **基模型** | [Qwen3-0.6B-Base](https://huggingface.co/Qwen/Qwen3-0.6B-Base) |
-| **训练框架** | OpenRLHF + DeepSpeed ZeRO-2 |
-| **数据来源** | Nemotron-CC-Math-v1 清洗结果 |
-| **验证集** | 1000 道数学推理题（含 perturbation_type 分桶标签） |
-| **最佳模型** | `qwen3-0.6B-mathsft-V3-lora-merged-v5` —— 验证集准确率 **46.80%** |
-| **Hugging Face** | [Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project](https://huggingface.co/Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project) |
----
+## 训练流程和数据
 
-## 目录结构
+### 全量 SFT
 
-```
-.
-├── run_math_sft.py              # 全量 SFT 训练脚本（第一阶段）
-├── run_lora_math_sft.py         # LoRA 微调脚本（第三阶段）
-├── build_lora_dataset.py        # 构建 LoRA 弱项训练集
-├── merge_lora.py                # 将 LoRA adapter 合并为独立模型
-├── run_eval.py                  # 基础评测脚本
-├── run_eval_with_dump.py        # 逐题 dump 评测（含分题型统计）
-├── run_eval_lora_merged.py      # 评测合并后的 LoRA 模型
-├── jgy-dataset/                 # 训练数据集
-│   ├── 7460.jsonl               # 原始清洗数据（7456 条）
-│   ├── 7460_cleaned.jsonl       # 二次清洗数据
-│   ├── final_en_sft_scoring_aligned.jsonl   # 第一阶段全量 SFT 训练数据（952 条）
-│   ├── merged_dataset_distilled.jsonl       # V3 基模训练数据
-│   ├── lora_weakness_train_v2.jsonl   # LoRA v2/v5 主力训练集（100 CT + 700 replay）
-│   └── ...
-├── validation-set/              # 验证集与评分脚本
-│   ├── valid_1000.jsonl         # 1000 题验证集
-│   └── score_valid_outputs.py   # 答案提取与匹配评分逻辑
-├── ClassResource/               # 课程参考资源
-│   ├── Chapter7_Data.ipynb      # 数据清洗教程（课程提供）
-│   └── Chapter_4_vllm_lab.md    # vLLM 启动与评测教程（课程提供）
-└── eval_dumps/                  # 各版本逐题评测结果（生成）
-```
+训练数据包括从 Nemotron-CC-Math-v1 清洗的数学题和后续整理的蒸馏样本。下表列出主要训练产物及其数据。
 
-> **注意**：模型权重文件（`qwen3-0.6B*` 等）体积超过 10GB，未包含在本仓库中。如需获取最终模型权重，见下方 [模型权重获取](#模型权重获取) 部分。
+| 模型或实验 | 训练数据 | 样本数 |
+| --- | --- | ---: |
+| 初版 SFT `j1/model-j.safetensors` | [`final_en_sft_scoring_aligned.jsonl`](jgy-dataset/final_en_sft_scoring_aligned.jsonl)，答案格式对齐的数学题 | 952 |
+| **原始 V3 `global_step477_hf`** | [`merged_dataset_distilled.jsonl`](jgy-dataset/merged_dataset_distilled.jsonl)，以基础题为主的蒸馏数据 | **2,548** |
+| 早期 SFT 实验 `2-5` | [`sftdata_plus_general100_plus_critical_thinking100.jsonl`](jgy-dataset/sftdata_plus_general100_plus_critical_thinking100.jsonl)，952 条数学题、100 条通用题和 130 条 CT 题 | 1,182 |
+| 扩大数据的 SFT 实验 `VVV2/5-1` | [`combined_7460_merged.jsonl`](jgy-dataset/combined_7460_merged.jsonl)，7,456 条清洗数据加上 V3 的 2,548 条蒸馏数据 | 10,004 |
+| 另一组 SFT 实验 `Qwen3-0.6B-Math-SFT` | [`math_sft_think_boxed.jsonl`](jgy-dataset/math_sft_think_boxed.jsonl)，由 `final_cleaned_high_quality.jsonl` 转换而来 | 1,850 |
 
----
+`model-j` 用于建立初版 SFT 和课程评测流程。后续实验尝试了混入通用数据与拒答样本，以及调整学习率和梯度累积。LoRA 实验采用 **原始 V3 的 step 477 权重**。V3 的完整训练启动参数缺少可核对的日志。
 
-## 从基模型到最终模型的完整过程
+`2-5` 的 130 条 CT 样本与验证集中的 CT 题重合。解读这一轮的验证结果时需考虑这部分重叠。
 
-本项目经历了 **三个阶段**：全量 SFT 基线 → 消融探索 → LoRA 弱项强化。
+### V3 诊断和 LoRA 数据构建
 
-### 第一阶段：全量 SFT 基线（j1 / model-j）
+用 [`run_eval_with_dump.py`](run_eval_with_dump.py) 对原始 V3 运行逐题评测，并按 `perturbation_type` 汇总。原始 V3 在 **critical thinking（CT）** 上答对 **0/130**。这类题缺少求解所需条件，预期答案为 `None`。
 
-**目标**：建立第一条可运行的训练流水线，产出超越 baseline 的初始模型。
+[`build_lora_dataset.py`](build_lora_dataset.py) 以 [`7460_cleaned.jsonl`](jgy-dataset/7460_cleaned.jsonl) 为数据池，生成删除关键信息的 CT 样本，目标答案为 `\boxed{None}`。同时抽取原始数学题作为 **replay 样本**，用于保留已有解题能力。以下三份 LoRA 数据与 `valid_1000.jsonl` 进行了题面文本比对，未发现同题重叠。
 
-- **基模型**：`Qwen3-0.6B-Base`
-- **训练数据**：`jgy-dataset/final_en_sft_scoring_aligned.jsonl`（952 条数学样本）
-- **关键超参**：
-  - 学习率 `5e-6`
-  - `train_batch_size=16`, `micro_batch_size=4`, `gradient_accumulation=4`
-  - `max_epochs=3`, `max_len=4096`
-- **chat template**：自定义 template，显式保留 `<think>` 思考标签，确保训练与推理两侧形态一致
-- **产出**：`Qwen3-0.6B-Base-Math-SFT-v2`（小组第一版超 baseline 模型）
+| 训练数据 | CT | Replay | 合计 |
+| --- | ---: | ---: | ---: |
+| [`lora_weakness_train.jsonl`](jgy-dataset/lora_weakness_train.jsonl) | 150 | 400 | 550 |
+| [`lora_weakness_train_v2.jsonl`](jgy-dataset/lora_weakness_train_v2.jsonl) | 100 | 700 | 800 |
+| [`lora_weakness_train_v4.jsonl`](jgy-dataset/lora_weakness_train_v4.jsonl) | 150 | 700 | 850 |
 
-**脚本**：[`run_math_sft.py`](run_math_sft.py)
+### 六组 LoRA 实验
 
----
+每组独立从同一份 V3 权重开始训练。表中的准确率来自自行评测。
 
-### 第二阶段：训练策略探索与消融
+| LoRA 版本 | 数据文件 | Rank / alpha | 学习率 | Epoch | 准确率 |
+| --- | --- | ---: | ---: | ---: | ---: |
+| v1 | `lora_weakness_train.jsonl` | 16 / 32 | `1e-4` | 2 | 40.70% |
+| v2 | `lora_weakness_train_v2.jsonl` | 8 / 16 | `5e-5` | 1 | 44.50% |
+| v3 | `lora_weakness_train_v2.jsonl` | 8 / 16 | `5e-5` | 2 | 44.90% |
+| v4 | `lora_weakness_train_v4.jsonl` | 8 / 16 | `5e-5` | 1 | 44.50% |
+| **v5** | **`lora_weakness_train_v2.jsonl`** | **4 / 8** | **`5e-5`** | **2** | **46.80%** |
+| v6 | `lora_weakness_train_v2.jsonl` | 8 / 16 | `2.5e-5` | 2 | 43.90% |
 
-**目标**：在数据组成与训练超参两个维度上系统探索，寻找突破瓶颈的方向。
-
-| 探索方向 | 具体操作 | 结论 |
-|----------|----------|------|
-| 加入通用领域数据 | 混入编程/生产力/生活/社会/文本领域数据 | 验证集无明显提升，数学样本被稀释 |
-| 加入 `\boxed{none}` 拒答样本 | 引入无解题样本，教模型"无法回答时拒答" | 对无解题判别略有响应，但整体准确率下降 |
-| 加入批判性思考样本 | 在数据中加入 critical thinking 类型题 | 无稳定增益 |
-| 学习率消融 | `5e-6` / `2e-6` / `1e-6` 三档对比 | `5e-6` 收敛最快但易过拟合；`1e-6` 收敛不足 |
-| 梯度累积 / 优化器系数 / 正则项 | 多组对照实验 | 差异不显著 |
-
-**关键结论**：在仅依赖单一全量 SFT 的范式下，模型性能已逼近收益上限。必须切换到**更精细的训练策略**（分阶段训练 + 局部精修）才能继续提升。
-
----
-
-### 第三阶段：基于 V3 的 LoRA 弱项强化（主要产出）
-
- teammate 缪梓航同学采用"高比例基础题 + 低比例进阶题"的数据组织思路训练出 `qwen3-0.6B-mathsft-V3`（验证集准确率 **44.30%**）。
-
-- **训练数据**：`jgy-dataset/merged_dataset_distilled.jsonl`
-- **关键超参**：
-  - 学习率 `1.5e-6`
-  - `global_batch_size = 16`
-  - `epoch = 2`
-
-本阶段在此基础上进一步提升。
-
-#### Step 1 —— V3 分题型能力分析
-
-使用 [`run_eval_with_dump.py`](run_eval_with_dump.py) 对 V3 进行批量推理，逐题保存结果，按 `perturbation_type` 分桶统计。
-
-**关键发现**：V3 在 **critical thinking** 题型上完全失败（`0/130`，占整体 13 个百分点）。这类题是把 GSM8K 题目中的关键数字删掉变成"无解题"，期望答案为 `None`。V3 因从未见过"应当拒答"的样本，会强行编出一个数字。
-
-#### Step 2 —— 构建 LoRA 弱项训练集
-
-编写 [`build_lora_dataset.py`](build_lora_dataset.py)，采用 **"少量 CT 合成题 + 大量 replay 基础题"** 的混合配方：
-
-- **CT 合成题**：从 `7460_cleaned.jsonl` 中选取 GSM8K 风格题目，用正则表达式移除关键数字（价格、成本、速率等），生成"信息缺失"变体，答案模板引导至 `\boxed{None}`。
-- **replay 基础题**：从同一份数据池中抽取未修改的原始样本，作为锚点防止灾难性遗忘。
-- **防泄漏校验**：与 `validation-set/valid_1000.jsonl` 进行问题文本交叉比对，确保 0 泄漏。
-
-**两轮迭代**：
-- `lora_weakness_train.jsonl`：**150 CT + 400 replay = 550 条**（CT 占比 27%，后被验证为过高）
-- `lora_weakness_train_v2.jsonl`：**100 CT + 700 replay = 800 条**（CT 占比 12.5%，为后续主力训练集）
-
-#### Step 3 —— LoRA 微调：6 个版本迭代
-
-| 版本 | 关键变更 | 验证集准确率 | 备注 |
-|------|----------|-------------|------|
-| V3 baseline | — | **44.30%** |  teammate 训练的基模 |
-| v1 | rank=8, lr=1e-4, CT 27% | ~40% | 灾难性遗忘，整体下降 3.6% |
-| **v2** | rank=8, lr=5e-5, CT 12.5% | ~44.5% | 首次实现稳定正向收益 |
-| v3 | rank=8, epoch/CT 微调 | ~44.7% | +0.2% 波动 |
-| v4 | rank=8, 继续微调 | ~44.9% | +0.4% 波动，rank=8 已见瓶颈 |
-| **v5** | **rank=4, alpha=8, lr=5e-5** | **46.80%** | **全题型同时上升，最佳模型** |
-| v6 | rank=8, lr=2.5e-5 | ~43.9% | 反向确认 v5 超参为局部最优 |
-
-**v5 的核心突破**：
-- 将 rank 从 8 降到 4（alpha 同比减半到 8），用更小的 LoRA 容量起到更强的正则化作用
-- `target_modules` 显式**排除 `lm_head` 与 `embed_tokens`**，降低对输出层先验的扰动
-- 结果：**CT +11.54%、digit expansion +5.08%、numerical substitution +4.09%**，且其他题型未回退
-
-**脚本**：[`run_lora_math_sft.py`](run_lora_math_sft.py)
-
-#### Step 4 —— 合并 LoRA 并产出最终模型
-
-使用 [`merge_lora.py`](merge_lora.py) 将 LoRA adapter 合并回 V3 基模，生成独立的 `model.safetensors`：
-
-```python
-# 加载基模 + adapter → merge_and_unload → 保存
-base = AutoModelForCausalLM.from_pretrained(BASE_PATH, ...)
-model = PeftModel.from_pretrained(base, ADAPTER_PATH)
-merged = model.merge_and_unload()
-merged.save_pretrained(MERGED_PATH, safe_serialization=True)
-```
-
-**最终产出**：`qwen3-0.6B-mathsft-V3-lora-merged-v5`
-- 相对 V3 baseline 绝对提升：**+2.50%**
-- 小组当前综合表现最好的模型
-
----
+- **v3 与 v5** 使用相同数据、学习率和训练轮数。在 `alpha / rank = 2` 下，rank 4 的这一组取得了最高准确率。
+- **v2 与 v4** 同时改变了 CT 和 replay 的样本构成。两份数据各有 700 条 replay，其中 449 条的题目和回答完全一致，这组对比无法单独衡量增加 CT 数量的效果。
+- **v5 相对原始 V3**，CT 从 **0/130** 提升到 **15/130**。八类题中四类上升、两类持平、两类下降。
 
 ## 模型权重获取
 
-最终最佳模型已上传至 Hugging Face Hub：
+- **原始 V3** 的训练记录使用 `qwen3-0.6B-mathsft-V3`，对应 step 477 的 Hugging Face 格式 checkpoint `global_step477_hf`。
+- **最终 LoRA v5**（`qwen3-0.6B-mathsft-V3-lora-merged-v5`）由 [`merge_lora.py`](merge_lora.py) 将 v5 adapter 合并进原始 V3 权重后导出。发布地址为 [Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project](https://huggingface.co/Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project)。
 
-**[Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project](https://huggingface.co/Unefois/qwen3-0.6B-SFTforMATH-SUSTechSTA324project)**
+评测时，模型路径应指向包含权重、配置和 tokenizer 的完整模型目录。重新训练 LoRA 需要准备原始 V3 的完整 checkpoint。
 
----
+## 运行评测和训练
 
-## 快速开始
+脚本使用 Linux、CUDA 和包含 PyTorch、OpenRLHF、DeepSpeed、Transformers、PEFT、vLLM 的 Python 环境。历史配置中有 `/home/ubuntu` 下的绝对路径，运行前把它们替换为当前环境的路径。
 
-### 环境要求
+### 评测已有权重
 
-- Python 3.10+
-- CUDA 12.x
-- `llm` conda 虚拟环境（已预装 PyTorch、DeepSpeed、OpenRLHF、vLLM、transformers、peft 等）
+1. 原始 V3 使用 [`run_eval_with_dump.py`](run_eval_with_dump.py)，已合并的 LoRA v5 使用 [`run_eval_lora_merged.py`](run_eval_lora_merged.py)。
+2. 将对应脚本的 `MODEL_PATH` 指向目标模型目录，设置 `DATA_PATH` 为 [`validation-set/valid_1000.jsonl`](validation-set/valid_1000.jsonl)，并更新评分模块导入目录、`DUMP_PATH` 和 `TAG`。合并版评测脚本的默认模型与输出文件名对应 v6。
+3. 运行相应脚本。脚本用 [`score_valid_outputs.py`](validation-set/score_valid_outputs.py) 提取最终答案、判分，并输出总体和分题型准确率及逐题记录。
 
-```bash
-conda activate llm
-```
+### 按 v5 配置训练和合并
 
-### 1. 全量 SFT（第一阶段）
-
-```bash
-python run_math_sft.py
-```
-
-产出目录：`Qwen3-0.6B-Math-SFT/`
-
-### 2. 评测基线模型
-
-```bash
-python run_eval.py
-```
-
-### 3. 构建 LoRA 弱项训练集
-
-```bash
-python build_lora_dataset.py
-```
-
-产出：`jgy-dataset/lora_weakness_train_v2.jsonl`
-
-### 4. LoRA 微调（第三阶段）
-
-编辑 [`run_lora_math_sft.py`](run_lora_math_sft.py) 中的超参（`LORA_RANK`、`LORA_ALPHA`、`LR` 等），然后：
+1. 在 [`run_lora_math_sft.py`](run_lora_math_sft.py) 中，设置 `MODEL_PATH` 为原始 V3，`DATASET_PATH` 为仓库中已有的 `lora_weakness_train_v2.jsonl`，并为 adapter 指定 `SAVE_PATH`。若需要使用数据构建脚本，当前默认输出的是 **v4 的 850 条数据**。
+2. 训练脚本当前默认配置对应 v6。改为 v5 时，设置 `LORA_RANK=4`、`LORA_ALPHA=8`、`LR=5e-5`、`MAX_EPOCHS=2`。全局 batch size 为 16，micro batch size 为 4，LoRA dropout 为 0.05。沿用脚本中的注意力和 MLP 投影层作为 LoRA 目标。
+3. 在 [`merge_lora.py`](merge_lora.py) 中设置 `BASE_PATH` 为同一份原始 V3，`ADAPTER_PATH` 为刚训练出的 adapter 目录，`MERGED_PATH` 为 v5 完整模型的输出目录。合并后按上一节评测该输出目录。
 
 ```bash
 python run_lora_math_sft.py
-```
-
-产出目录：`qwen3-0.6B-mathsft-V3-lora-r8/`（LoRA adapter）
-
-### 5. 合并 LoRA 产出最终模型
-
-```bash
 python merge_lora.py
-```
-
-产出目录：`qwen3-0.6B-mathsft-V3-lora-merged-v5/`
-
-### 6. 评测最终模型
-
-```bash
 python run_eval_lora_merged.py
 ```
 
----
+## 仓库索引
 
-## 关键脚本说明
-
-| 脚本 | 作用 |
-|------|------|
-| `run_math_sft.py` | 全量 SFT 训练：DeepSpeed + OpenRLHF，自定义 chat template，TensorBoard 监控 |
-| `run_lora_math_sft.py` | LoRA 微调：在 V3 基模上加载 LoRA adapter，可配置 rank/alpha/target_modules |
-| `build_lora_dataset.py` | 弱项数据集构建：正则合成 CT 题 + replay 缓冲池 + 零泄漏校验 |
-| `merge_lora.py` | 合并 LoRA：使用 PEFT 的 `merge_and_unload()` 生成独立 safetensors 模型 |
-| `run_eval.py` | 基础评测：vLLM 批量推理，输出整体准确率 |
-| `run_eval_with_dump.py` | 增强评测：逐题 dump 到 `eval_dumps/`，并打印分题型准确率 |
-| `run_eval_lora_merged.py` | 对合并后的 LoRA 模型进行评测 |
-| `validation-set/score_valid_outputs.py` | 答案提取与匹配：支持 `\boxed{}`、`#### `、数字、分数、百分数等多种格式 |
-
----
-
-## 数据集说明
-
-### 训练数据（`jgy-dataset/`）
-
-- **原始来源**：Nemotron-CC-Math-v1 经过数据组清洗后的结果
-- **关键文件**：
-  - `7460.jsonl` / `7460_cleaned.jsonl`：原始清洗池（~7456 条）
-  - `final_en_sft_scoring_aligned.jsonl`：第一阶段全量 SFT 数据（952 条数学样本）
-  - `merged_dataset_distilled.jsonl`：V3 基模训练数据
-  - `lora_weakness_train_v2.jsonl`：LoRA 主力训练集（800 条 = 100 CT 合成题 + 700 replay 基础题）
-
-### 验证数据（`validation-set/`）
-
-- `valid_1000.jsonl`：1000 道验证题，含 `perturbation_type` 字段（如 `critical thinking`、`digit expansion`、`numerical substitution` 等）
-- `score_valid_outputs.py`：官方评分逻辑，支持多格式答案提取与数值容错匹配
-
----
-
-## 项目反思与关键经验
-
-1. **全量 SFT 奠定基础，LoRA 做精修**：在已有较强基模时，LoRA 是更可控、更不易破坏既有能力的精修工具。
-2. **数据的"针对性"远比"数量"更重要**：模型最大的提升均来源于较小但高度针对性的数据集（800 条 LoRA 数据 > 数千条盲目扩充）。
-3. **逐题可追溯的评测是必须的**：没有 `V3_per_item.jsonl` 这样的逐题 dump，就无法发现 CT 0/130 的核心短板。
-4. **更小的 LoRA rank 不一定更弱**：在已有强基模时，过大的 rank 反而破坏已有能力。v5（rank=4）优于 v2/v3/v4（rank=8）正是这一直觉的反例验证。
+- [`jgy-dataset/`](jgy-dataset/) 收录 SFT 和 LoRA 数据。
+- [`validation-set/`](validation-set/) 收录 1,000 题验证集与评分代码，题型由 `perturbation_type` 标注。
+- [`run_math_sft.py`](run_math_sft.py) 是全量 SFT 训练入口，当前默认运行表中的 1,850 条数据实验。
+- [`ClassResource/`](ClassResource/) 收录课程数据清洗和 vLLM 推理参考资料。
 
 ---
 
